@@ -4,14 +4,32 @@ targetd-client is a client library for the targetd API.
 
 ## Usage
 
-Using this library is pretty simple:
+targetd-client is available on PyPI:
 
 ```
-from targetd_client import TargetdClient
-
-targetd = TargetdClient("https://example.com:18700", "username", "password")
-print(targetd.vol_list())
+$ python -m pip install targetd-client
 ```
+
+Using the library is pretty simple:
+
+```
+>>> from targetd_client import TargetdClient
+>>> targetd = TargetdClient("https://example.com:18700", "username", "password")
+>>> pool_list = targetd.pool_list()
+>>> vol_list = targetd.vol_list(pool_list[0]["name"])
+>>> ...
+```
+
+## `targetdctl`
+
+This projects also ships with the `targetdctl` CLI utility. To use it, you must
+first install its dependencies:
+
+```
+$ pip install targetd-client[cli]
+```
+
+Use `targetdctl --help` to get the list of command lines arguments.
 
 ## Contributing
 
