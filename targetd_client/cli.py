@@ -22,6 +22,7 @@ try:
     from tabulate import tabulate
 except ImportError:
     import sys
+
     print("Please install targetd-client[cli] to use targetdctl")
     sys.exit(255)
 
@@ -47,25 +48,25 @@ class Context(object):
         self.log_level = log_level
         self.print_headers = print_headers
 
-    def warning(self, msg: str):
+    def warning(self, msg: str) -> None:
         print(msg)
 
-    def info(self, msg: str):
+    def info(self, msg: str) -> None:
         if self.log_level < Context.LOG_INFO:
             return
 
         print(msg)
 
-    def debug(self, msg: str):
+    def debug(self, msg: str) -> None:
         if self.log_level < Context.LOG_DEBUG:
             return
 
-    def tabulate(self, data: List[Dict[str, Any]]):
+    def tabulate(self, data: List[Dict[str, Any]]) -> None:
         headers = "keys" if self.print_headers else []
 
         print(tabulate(self.humanize(data), headers=headers, tablefmt="plain"))
 
-    def humanize(self, data: List[Dict[str, Any]]):
+    def humanize(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         for item in data.copy():
             for key, value in item.items():
                 if "size" in key and isinstance(value, (int, float)):
@@ -77,7 +78,7 @@ class Context(object):
 pass_context = click.make_pass_decorator(Context)
 
 
-def main():
+def main() -> None:
     try:
         cli()
     except TargetdException as e:
@@ -96,13 +97,13 @@ def main():
 @click.pass_context
 def cli(
     ctx: click.core.Context,
-    debug: True,
-    verbose: True,
+    debug: bool,
+    verbose: bool,
     url: str,
     username: str,
     password: str,
     print_headers: bool,
-):
+) -> None:
     log_level = Context.LOG_WARNING
 
     if debug:
@@ -114,13 +115,13 @@ def cli(
 
 
 @cli.group()
-def pool():
+def pool() -> None:
     pass
 
 
 @pool.command("list")
 @pass_context
-def pool_list(ctx: Context):
+def pool_list(ctx: Context) -> None:
     pools = ctx.targetd.pool_list()
     ctx.tabulate(pools)
 
@@ -128,7 +129,7 @@ def pool_list(ctx: Context):
 @pool.command("get")
 @pass_context
 @click.argument("name")
-def pool_get(ctx: Context, name: str):
+def pool_get(ctx: Context, name: str) -> None:
     pools = [pool for pool in ctx.targetd.pool_list() if pool["name"] == name]
 
     if not pools:
@@ -138,14 +139,14 @@ def pool_get(ctx: Context, name: str):
 
 
 @cli.group()
-def volume():
+def volume() -> None:
     pass
 
 
 @volume.command("list")
 @pass_context
 @click.argument("pool")
-def volume_list(ctx: Context, pool: str):
+def volume_list(ctx: Context, pool: str) -> None:
     volumes = ctx.targetd.vol_list(pool)
     ctx.tabulate(volumes)
 
@@ -155,7 +156,7 @@ def volume_list(ctx: Context, pool: str):
 @click.argument("pool")
 @click.argument("name")
 @click.argument("size")
-def volume_create(ctx: Context, pool: str, name: str, size: int):
+def volume_create(ctx: Context, pool: str, name: str, size: int) -> None:
     ctx.targetd.vol_create(pool, name, size)
 
 
@@ -163,7 +164,7 @@ def volume_create(ctx: Context, pool: str, name: str, size: int):
 @pass_context
 @click.argument("pool")
 @click.argument("names", nargs=-1)
-def volume_destroy(ctx: Context, pool: str, names: List[str]):
+def volume_destroy(ctx: Context, pool: str, names: List[str]) -> None:
     for name in names:
         try:
             ctx.targetd.vol_destroy(pool, name)
@@ -175,13 +176,13 @@ def volume_destroy(ctx: Context, pool: str, names: List[str]):
 
 
 @cli.group()
-def export():
+def export() -> None:
     pass
 
 
 @export.command("list")
 @pass_context
-def export_list(ctx: Context):
+def export_list(ctx: Context) -> None:
     exports = ctx.targetd.export_list()
     ctx.tabulate(exports)
 
@@ -192,7 +193,9 @@ def export_list(ctx: Context):
 @click.argument("volume")
 @click.argument("initiator_wwn")
 @click.argument("lun")
-def export_create(ctx: Context, pool: str, volume: str, initiator_wwn: str, lun: int):
+def export_create(
+    ctx: Context, pool: str, volume: str, initiator_wwn: str, lun: int
+) -> None:
     ctx.targetd.export_create(pool, volume, initiator_wwn, lun)
 
 
@@ -201,5 +204,5 @@ def export_create(ctx: Context, pool: str, volume: str, initiator_wwn: str, lun:
 @click.argument("pool")
 @click.argument("volume")
 @click.argument("initiator_wwn")
-def export_destroy(ctx: Context, pool: str, volume: str, initiator_wwn: str):
+def export_destroy(ctx: Context, pool: str, volume: str, initiator_wwn: str) -> None:
     ctx.targetd.export_destroy(pool, volume, initiator_wwn)
