@@ -1,0 +1,64 @@
+stages:
+  - Syntax checks
+  - Unit tests
+  - Build
+  - Publish
+
+black:
+  stage: Syntax checks
+  image: python:3.8
+  before_script:
+    - pip install black
+  script:
+    - black --check --diff .
+
+flake8:
+  stage: Syntax checks
+  image: python:3.8
+  before_script:
+    - pip install flake8
+  script:
+    - flake8
+
+mypy:
+  stage: Syntax checks
+  image: python:3.8
+  before_script:
+    - pip install mypy
+  script:
+    - mypy --strict targetd_client
+
+Unit tests:
+  stage: Unit tests
+  image: python:3.8
+  before_script:
+    - pip install pytest pytest-cov
+    - pip install .
+  script:
+    - pytest --cov-report=xml
+  artifacts:
+    reports:
+      cobertura: coverage.xml
+
+Build:
+  stage: Build
+  only:
+    - tags
+  image: python:3.8
+  script:
+    - setup.py sdist
+  artifacts:
+    paths:
+      - dist/*.tar.gz
+
+Publish:
+  stage: Publish
+  only:
+    - tags
+  image: python:3.8
+  before_script:
+    - pip install twine
+  script:
+    - twine upload --non-interactive dist/*.tar.gz
+  dependencies:
+    - Build
