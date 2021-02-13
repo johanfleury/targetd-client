@@ -46,7 +46,7 @@ Build:
     - tags
   image: python:3.8
   script:
-    - setup.py sdist
+    - ./setup.py sdist
   artifacts:
     paths:
       - dist/*.tar.gz
